@@ -1,3 +1,4 @@
+#include "editpathsdialog.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QIcon>
@@ -8,6 +9,9 @@
 #include <QProgressDialog>
 #include <QClipboard>
 #include <QMimeData>
+#include <QtConcurrent>
+#include <QAction>
+#include <QToolButton>
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -16,15 +20,26 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 	ui->setupUi(this);
 	ui->iconTreeView->sortByColumn(0, Qt::AscendingOrder);
+	auto seperator = new QAction(ui->iconTreeView);
+	seperator->setSeparator(true);
 	ui->iconTreeView->addActions({
 									 ui->action_Copy_Icon_Name,
 									 ui->actionCopy_Name,
-									 ui->actionCopy_Icon
+									 ui->actionCopy_Icon,
+									 seperator,
+									 ui->action_Scan_for_more_icons
 								 });
+	ui->searchIconsButton->setDefaultAction(ui->action_Scan_for_more_icons);
+	ui->addPathButton->addActions({
+									  ui->actionAdd_theme_path,
+									  ui->actionEdit_theme_paths
+								  });
+	ui->addPathButton->setDefaultAction(ui->actionAdd_theme_path);
 	statusBar()->addWidget(countLabel);
 
 	loadThemeNames();
-	on_currentThemeComboBox_activated(QIcon::themeName());
+	QMetaObject::invokeMethod(this, "on_currentThemeComboBox_activated", Qt::QueuedConnection,
+							  Q_ARG(QString, QIcon::themeName()));
 }
 
 MainWindow::~MainWindow()
@@ -32,25 +47,36 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 
-void MainWindow::on_addPathButton_clicked()//TODO list paths/remove paths
+void MainWindow::updateCount()
 {
-	auto path = DialogMaster::getText(this, tr("Enter an additional theme search path:"), tr("Add Theme path"));
-	if(!path.isEmpty() && QDir(path).exists()) {
-		QIcon::setThemeSearchPaths(QIcon::themeSearchPaths() << path);
-		loadThemeNames();
-	}
+	countLabel->setText(tr("Total Icons: %1").arg(ui->iconTreeView->topLevelItemCount()));
+}
+
+void MainWindow::createTreeItem(QString name, QIcon icon)
+{
+	auto item = new QTreeWidgetItem(ui->iconTreeView);
+	item->setText(0, name);
+	item->setIcon(0, icon);
 }
 
 void MainWindow::on_currentThemeComboBox_activated(const QString &text)
 {
 	ui->iconTreeView->clear();
 	QIcon::setThemeName(text);
+	auto progress = DialogMaster::createProgress(this, tr("Loading icons for theme"));
+	progress->setAttribute(Qt::WA_DeleteOnClose, true);
+	progress->show();
 
-	foreach (auto icon, iconNames)
-		addIcon(icon);
-	scanIcons(themes.value(text));
-
-	updateCount();
+	QtConcurrent::run([=](){
+		foreach (auto icon, iconNames) {
+			if(progress->wasCanceled())
+				break;
+			addIcon(icon);
+		}
+		scanIcons(themes.value(text), progress);
+		QMetaObject::invokeMethod(this, "updateCount");
+		QMetaObject::invokeMethod(progress, "close");
+	});
 }
 
 void MainWindow::on_iconSizeSpinBox_valueChanged(int iconSize)
@@ -65,24 +91,6 @@ void MainWindow::on_filterLineEdit_textChanged(const QString &text)
 		auto item = ui->iconTreeView->topLevelItem(i);
 		item->setHidden(!matchItems.contains(item));
 	}
-}
-
-void MainWindow::on_searchIconsButton_clicked()
-{
-	auto max = themes.size();
-	auto values = themes.values();
-	auto progress = DialogMaster::createProgress(this, tr("Scanning all themes for icon names"), max);
-	progress->show();
-
-	for(auto i = 0; i < max; i++) {
-		progress->setValue(i);
-		QApplication::processEvents();
-		scanIcons(values[i]);
-	}
-	progress->setValue(max);
-
-	progress->deleteLater();
-	updateCount();
 }
 
 void MainWindow::on_iconTreeView_itemActivated(QTreeWidgetItem *item)
@@ -118,6 +126,42 @@ void MainWindow::on_actionCopy_Icon_triggered()
 	}
 }
 
+void MainWindow::on_action_Scan_for_more_icons_triggered()
+{
+	auto max = themes.size();
+	auto values = themes.values();
+	auto progress = DialogMaster::createProgress(this, tr("Scanning all themes for icon names"), max);
+	progress->setAttribute(Qt::WA_DeleteOnClose, true);
+	progress->setAutoClose(true);
+	progress->setAutoReset(true);
+	progress->show();
+
+	QtConcurrent::run([=](){
+		for(auto i = 0; i < max; i++) {
+			if(progress->wasCanceled())
+				break;
+			scanIcons(values[i], progress);
+			QMetaObject::invokeMethod(progress, "setValue", Q_ARG(int, i + 1));
+		}
+		QMetaObject::invokeMethod(this, "updateCount");
+	});
+}
+
+void MainWindow::on_actionAdd_theme_path_triggered()
+{
+	auto path = DialogMaster::getText(this, tr("Enter an additional theme search path:"), tr("Add Theme path"));
+	if(!path.isEmpty() && QDir(path).exists()) {
+		QIcon::setThemeSearchPaths(QIcon::themeSearchPaths() << path);
+		loadThemeNames();
+	}
+}
+
+void MainWindow::on_actionEdit_theme_paths_triggered()
+{
+	if(EditPathsDialog::editIconPaths(this))
+		loadThemeNames();
+}
+
 
 void MainWindow::loadThemeNames()
 {
@@ -131,6 +175,7 @@ void MainWindow::loadThemeNames()
 		}
 	}
 
+	ui->currentThemeComboBox->clear();
 	ui->currentThemeComboBox->addItems(themes.keys());
 	ui->currentThemeComboBox->setCurrentText(QIcon::themeName());
 }
@@ -139,15 +184,13 @@ bool MainWindow::addIcon(const QString &name)
 {
 	auto icon = QIcon::fromTheme(name);
 	if(!icon.isNull()) {
-		auto item = new QTreeWidgetItem(ui->iconTreeView);
-		item->setText(0, name);
-		item->setIcon(0, icon);
+		QMetaObject::invokeMethod(this, "createTreeItem", Q_ARG(QString, name), Q_ARG(QIcon, icon));
 		return true;
 	} else
 		return false;
 }
 
-void MainWindow::scanIcons(const QString &basePath)
+void MainWindow::scanIcons(const QString &basePath, QProgressDialog *progress)
 {
 	QDir iconDir(basePath);
 	iconDir.setFilter(QDir::Files | QDir::NoDotAndDotDot | QDir::Readable);
@@ -155,6 +198,9 @@ void MainWindow::scanIcons(const QString &basePath)
 	QDirIterator iterator(iconDir, QDirIterator::FollowSymlinks | QDirIterator::Subdirectories);
 	while(iterator.hasNext()) {
 		iterator.next();
+		if(progress->wasCanceled())
+			break;
+
 		auto iconName = iterator.fileInfo().baseName();
 		if(iconNames.contains(iconName))
 			continue;
@@ -174,9 +220,4 @@ void MainWindow::doCopy(QTreeWidgetItem *item, bool name, bool icon)
 		mime->setImageData(item->icon(0).pixmap({size, size}).toImage());
 	}
 	clip->setMimeData(mime);
-}
-
-void MainWindow::updateCount()
-{
-	countLabel->setText(tr("Total Icons: %1").arg(ui->iconTreeView->topLevelItemCount()));
 }

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -25,8 +25,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 include(./DialogMaster/dialogmaster.pri)
 
 SOURCES += main.cpp\
-		mainwindow.cpp
+		mainwindow.cpp \
+    editpathsdialog.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    editpathsdialog.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    editpathsdialog.ui
