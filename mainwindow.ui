@@ -122,6 +122,9 @@
     </item>
     <item>
      <widget class="QTreeWidget" name="iconTreeView">
+      <property name="contextMenuPolicy">
+       <enum>Qt::ActionsContextMenu</enum>
+      </property>
       <property name="editTriggers">
        <set>QAbstractItemView::NoEditTriggers</set>
       </property>
@@ -169,6 +172,27 @@
    </property>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="action_Copy_Icon_Name">
+   <property name="icon">
+    <iconset theme="edit-copy"/>
+   </property>
+   <property name="text">
+    <string>&amp;Copy Icon/Name</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="actionCopy_Name">
+   <property name="text">
+    <string>Copy &amp;Name</string>
+   </property>
+  </action>
+  <action name="actionCopy_Icon">
+   <property name="text">
+    <string>Copy &amp;Icon</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
