@@ -1,0 +1,3 @@
+[submodule "DialogMaster"]
+	path = DialogMaster
+	url = git@github.com:Skycoder42/DialogMaster.git
