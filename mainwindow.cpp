@@ -12,11 +12,14 @@
 #include <QtConcurrent>
 #include <QAction>
 #include <QToolButton>
+#include <QMenu>
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow),
-	countLabel(new QLabel(this))
+	countLabel(new QLabel(this)),
+	modeGroup(new QActionGroup(this)),
+	matchFlag(Qt::MatchWildcard)
 {
 	ui->setupUi(this);
 	ui->iconTreeView->sortByColumn(0, Qt::AscendingOrder);
@@ -36,6 +39,28 @@ MainWindow::MainWindow(QWidget *parent) :
 								  });
 	ui->addPathButton->setDefaultAction(ui->actionAdd_theme_path);
 	statusBar()->addWidget(countLabel);
+
+	QMenu *selectMenu = new QMenu(tr("Filters"), this);
+	selectMenu->setIcon(QIcon::fromTheme(QStringLiteral("dialog-filters")));
+	selectMenu->addActions({
+							   ui->actionMatch_Wildcard,
+							   ui->actionMatch_Regular_Expression,
+							   ui->actionMatch_Contains,
+							   ui->actionMatch_Starts_with,
+							   ui->actionMatch_Ends_with,
+							   ui->actionMatch_Exactly
+						   });
+	ui->filterLineEdit->addAction(selectMenu->menuAction(), QLineEdit::TrailingPosition);
+
+	modeGroup->setExclusive(true);
+	modeGroup->addAction(ui->actionMatch_Wildcard);
+	modeGroup->addAction(ui->actionMatch_Regular_Expression);
+	modeGroup->addAction(ui->actionMatch_Contains);
+	modeGroup->addAction(ui->actionMatch_Starts_with);
+	modeGroup->addAction(ui->actionMatch_Ends_with);
+	modeGroup->addAction(ui->actionMatch_Exactly);
+	connect(modeGroup, &QActionGroup::triggered,
+			this, &MainWindow::modeChanged);
 
 	loadThemeNames();
 	QMetaObject::invokeMethod(this, "on_currentThemeComboBox_activated", Qt::QueuedConnection,
@@ -57,6 +82,23 @@ void MainWindow::createTreeItem(QString name, QIcon icon)
 	auto item = new QTreeWidgetItem(ui->iconTreeView);
 	item->setText(0, name);
 	item->setIcon(0, icon);
+}
+
+void MainWindow::modeChanged(QAction *action)
+{
+	if(action == ui->actionMatch_Wildcard)
+		matchFlag = Qt::MatchWildcard;
+	else if(action == ui->actionMatch_Regular_Expression)
+		matchFlag = Qt::MatchRegExp;
+	else if(action == ui->actionMatch_Contains)
+		matchFlag = Qt::MatchContains;
+	else if(action == ui->actionMatch_Starts_with)
+		matchFlag = Qt::MatchStartsWith;
+	else if(action == ui->actionMatch_Ends_with)
+		matchFlag = Qt::MatchEndsWith;
+	else if(action == ui->actionMatch_Exactly)
+		matchFlag = Qt::MatchExactly;
+	on_filterLineEdit_textChanged(ui->filterLineEdit->text());
 }
 
 void MainWindow::on_currentThemeComboBox_activated(const QString &text)
@@ -84,12 +126,21 @@ void MainWindow::on_iconSizeSpinBox_valueChanged(int iconSize)
 	ui->iconTreeView->setIconSize({iconSize, iconSize});
 }
 
-void MainWindow::on_filterLineEdit_textChanged(const QString &text)
+void MainWindow::on_filterLineEdit_textChanged(QString text)
 {
-	auto matchItems = ui->iconTreeView->findItems(QLatin1Char('*') + text + QLatin1Char('*'), Qt::MatchWildcard);
-	for(auto i = 0; i < ui->iconTreeView->topLevelItemCount(); i++) {
-		auto item = ui->iconTreeView->topLevelItem(i);
-		item->setHidden(!matchItems.contains(item));
+	if(!text.isEmpty()) {
+		if(matchFlag == Qt::MatchWildcard)
+			text = QLatin1Char('*') + text + QLatin1Char('*');
+		auto matchItems = ui->iconTreeView->findItems(text, matchFlag);
+		for(auto i = 0; i < ui->iconTreeView->topLevelItemCount(); i++) {
+			auto item = ui->iconTreeView->topLevelItem(i);
+			item->setHidden(!matchItems.contains(item));
+		}
+	} else {
+		for(auto i = 0; i < ui->iconTreeView->topLevelItemCount(); i++) {
+			auto item = ui->iconTreeView->topLevelItem(i);
+			item->setHidden(false);
+		}
 	}
 }
 
@@ -161,7 +212,6 @@ void MainWindow::on_actionEdit_theme_paths_triggered()
 	if(EditPathsDialog::editIconPaths(this))
 		loadThemeNames();
 }
-
 
 void MainWindow::loadThemeNames()
 {

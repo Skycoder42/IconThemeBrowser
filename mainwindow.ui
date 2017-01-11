@@ -99,9 +99,6 @@
         <property name="placeholderText">
          <string>Filter Icons...</string>
         </property>
-        <property name="clearButtonEnabled">
-         <bool>true</bool>
-        </property>
        </widget>
       </item>
      </layout>
@@ -191,7 +188,8 @@
   </action>
   <action name="action_Scan_for_more_icons">
    <property name="icon">
-    <iconset theme="edit-find"/>
+    <iconset theme="edit-find">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Scan for more icons</string>
@@ -202,7 +200,8 @@
   </action>
   <action name="actionAdd_theme_path">
    <property name="icon">
-    <iconset theme="list-add"/>
+    <iconset theme="list-add">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Add &amp;theme path</string>
@@ -213,13 +212,65 @@
   </action>
   <action name="actionEdit_theme_paths">
    <property name="icon">
-    <iconset theme="story-editor"/>
+    <iconset theme="story-editor">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Edit theme paths</string>
    </property>
    <property name="toolTip">
     <string>Shows a list with all active theme paths and allows to remove them</string>
+   </property>
+  </action>
+  <action name="actionMatch_Wildcard">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Match Wildcard</string>
+   </property>
+  </action>
+  <action name="actionMatch_Regular_Expression">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Match Regular Expression</string>
+   </property>
+  </action>
+  <action name="actionMatch_Contains">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Match Contains</string>
+   </property>
+  </action>
+  <action name="actionMatch_Starts_with">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Match Starts with</string>
+   </property>
+  </action>
+  <action name="actionMatch_Ends_with">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Match Ends with</string>
+   </property>
+  </action>
+  <action name="actionMatch_Exactly">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Match Exactly</string>
    </property>
   </action>
  </widget>

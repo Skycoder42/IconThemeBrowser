@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QActionGroup>
 #include <QLabel>
 #include <QMainWindow>
 #include <QMap>
@@ -23,10 +24,11 @@ public:
 private slots:
 	void updateCount();
 	void createTreeItem(QString name, QIcon icon);
+	void modeChanged(QAction *action);
 
 	void on_currentThemeComboBox_activated(const QString &text);
 	void on_iconSizeSpinBox_valueChanged(int iconSize);
-	void on_filterLineEdit_textChanged(const QString &text);
+	void on_filterLineEdit_textChanged(QString text);
 	void on_iconTreeView_itemActivated(QTreeWidgetItem *item);
 	void on_action_Copy_Icon_Name_triggered();
 	void on_actionCopy_Name_triggered();
@@ -38,6 +40,8 @@ private slots:
 private:
 	Ui::MainWindow *ui;
 	QLabel *countLabel;
+	QActionGroup *modeGroup;
+	Qt::MatchFlag matchFlag;
 	QMap<QString, QString> themes;
 	QSet<QString> iconNames;
 
