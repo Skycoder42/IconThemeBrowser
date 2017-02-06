@@ -2,7 +2,7 @@ TEMPLATE = app
 
 QT       += core gui widgets concurrent
 
-TARGET = IconThemeBrowser
+TARGET = iconthemebrowser
 VERSION = 1.0.0
 
 DEFINES += "TARGET=\\\"$$TARGET\\\""
