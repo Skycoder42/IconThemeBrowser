@@ -23,3 +23,8 @@ SOURCES += main.cpp\
 
 FORMS    += mainwindow.ui \
 	editpathsdialog.ui
+
+inbin.path = /usr/bin
+inbin.files = $$TARGET
+
+INSTALLS += inbin
