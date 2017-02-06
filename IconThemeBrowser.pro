@@ -26,5 +26,7 @@ FORMS    += mainwindow.ui \
 
 inbin.path = /usr/bin
 inbin.files = $$TARGET
+indsk.path = /usr/share/applications/
+indsk.files = de.skycoder42.$${TARGET}.desktop
 
-INSTALLS += inbin
+INSTALLS += inbin indsk
