@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=1.1
+Name=Icon Theme Browser
+Comment=Application to browse icon themes available in Qt
+Exec=iconthemebrowser
+Icon=view-list-icons
+Terminal=false
+Categories=Development;Qt;
