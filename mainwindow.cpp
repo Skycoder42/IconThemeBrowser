@@ -19,9 +19,16 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui(new Ui::MainWindow),
 	countLabel(new QLabel(this)),
 	modeGroup(new QActionGroup(this)),
-	matchFlag(Qt::MatchWildcard)
+	matchFlag(Qt::MatchWildcard),
+	themes(),
+	iconNames()
 {
 	ui->setupUi(this);
+	addActions({
+				   ui->actionZoomIn,
+				   ui->actionZoomOut
+			   });
+
 	ui->iconTreeView->sortByColumn(0, Qt::AscendingOrder);
 	auto seperator = new QAction(ui->iconTreeView);
 	seperator->setSeparator(true);
@@ -62,13 +69,39 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(modeGroup, &QActionGroup::triggered,
 			this, &MainWindow::modeChanged);
 
+	QSettings settings;
+	QIcon::setThemeSearchPaths(settings.value(QStringLiteral("themePaths"), QIcon::themeSearchPaths()).toStringList());
+	ui->iconSizeSpinBox->setValue(settings.value(QStringLiteral("iconSize"), 16).toInt());
+
+	auto size = settings.beginReadArray(QStringLiteral("iconNames"));
+	for(auto i = 0; i < size; i++) {
+		settings.setArrayIndex(i);
+		iconNames.insert(settings.value(QStringLiteral("n")).toString());
+	}
+	settings.endArray();
+
 	loadThemeNames();
+	ui->currentThemeComboBox->setCurrentText(settings.value(QStringLiteral("theme"), QIcon::themeName()).toString());
 	QMetaObject::invokeMethod(this, "on_currentThemeComboBox_activated", Qt::QueuedConnection,
-							  Q_ARG(QString, QIcon::themeName()));
+							  Q_ARG(QString, ui->currentThemeComboBox->currentText()));
 }
 
 MainWindow::~MainWindow()
 {
+	QSettings settings;
+	settings.setValue(QStringLiteral("themePaths"), QIcon::themeSearchPaths());
+	settings.setValue(QStringLiteral("theme"), QIcon::themeName());
+	settings.setValue(QStringLiteral("iconSize"), ui->iconSizeSpinBox->value());
+
+	auto list = iconNames.toList();
+	auto size = list.size();
+	settings.beginWriteArray(QStringLiteral("iconNames"), size);
+	for(auto i = 0; i < size; i++) {
+		settings.setArrayIndex(i);
+		settings.setValue(QStringLiteral("n"), list[i]);
+	}
+	settings.endArray();
+
 	delete ui;
 }
 
@@ -211,6 +244,16 @@ void MainWindow::on_actionEdit_theme_paths_triggered()
 {
 	if(EditPathsDialog::editIconPaths(this))
 		loadThemeNames();
+}
+
+void MainWindow::on_actionZoomIn_triggered()
+{
+	ui->iconSizeSpinBox->stepUp();
+}
+
+void MainWindow::on_actionZoomOut_triggered()
+{
+	ui->iconSizeSpinBox->stepDown();
 }
 
 void MainWindow::loadThemeNames()

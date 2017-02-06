@@ -36,6 +36,8 @@ private slots:
 	void on_action_Scan_for_more_icons_triggered();
 	void on_actionAdd_theme_path_triggered();
 	void on_actionEdit_theme_paths_triggered();
+	void on_actionZoomIn_triggered();
+	void on_actionZoomOut_triggered();
 
 private:
 	Ui::MainWindow *ui;
