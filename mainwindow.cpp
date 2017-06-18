@@ -1,4 +1,3 @@
-#include "editpathsdialog.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QIcon>
@@ -13,6 +12,8 @@
 #include <QAction>
 #include <QToolButton>
 #include <QMenu>
+#include "editpathsdialog.h"
+#include "previewdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -188,8 +189,8 @@ void MainWindow::on_filterLineEdit_textChanged(QString text)
 
 void MainWindow::on_iconTreeView_itemActivated(QTreeWidgetItem *item)
 {
-	doCopy(item);
-	statusBar()->showMessage(tr("Copied name and icon of %1!").arg(item->text(0)), 5000);
+	if(item)
+		PreviewDialog::previewIcon(item->text(0), themes.keys(), this);
 }
 
 void MainWindow::on_action_Copy_Icon_Name_triggered()

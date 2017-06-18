@@ -15,14 +15,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 include(./vendor/vendor.pri)
 
 HEADERS  += mainwindow.h \
-	editpathsdialog.h
+	editpathsdialog.h \
+    previewdialog.h
 
 SOURCES += main.cpp\
 		mainwindow.cpp \
-	editpathsdialog.cpp
+	editpathsdialog.cpp \
+    previewdialog.cpp
 
 FORMS    += mainwindow.ui \
-	editpathsdialog.ui
+	editpathsdialog.ui \
+    previewdialog.ui
 
 target.path = $$[QT_INSTALL_BINS]
 INSTALLS += target

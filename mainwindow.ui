@@ -73,6 +73,12 @@
         <property name="toolTip">
          <string>Sets the preview size of the icons</string>
         </property>
+        <property name="accelerated">
+         <bool>true</bool>
+        </property>
+        <property name="correctionMode">
+         <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
+        </property>
         <property name="minimum">
          <number>8</number>
         </property>
