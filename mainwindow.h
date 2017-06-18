@@ -26,7 +26,7 @@ private slots:
 	void createTreeItem(QString name, QIcon icon);
 	void modeChanged(QAction *action);
 
-	void on_currentThemeComboBox_activated(const QString &text);
+	void on_currentThemeComboBox_activated(QString text);
 	void on_iconSizeSpinBox_valueChanged(int iconSize);
 	void on_filterLineEdit_textChanged(QString text);
 	void on_iconTreeView_itemActivated(QTreeWidgetItem *item);
@@ -45,6 +45,7 @@ private:
 	QActionGroup *modeGroup;
 	Qt::MatchFlag matchFlag;
 	QMap<QString, QString> themes;
+	const QString systemTheme;
 	QSet<QString> iconNames;
 
 	void loadThemeNames();

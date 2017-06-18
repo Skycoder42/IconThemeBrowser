@@ -3,7 +3,7 @@ TEMPLATE = app
 QT       += core gui widgets concurrent
 
 TARGET = iconthemebrowser
-VERSION = 1.0.0
+VERSION = 1.1.0
 
 DEFINES += "TARGET=\\\"$$TARGET\\\""
 DEFINES += "VERSION=\\\"$$VERSION\\\""
@@ -24,9 +24,5 @@ SOURCES += main.cpp\
 FORMS    += mainwindow.ui \
 	editpathsdialog.ui
 
-inbin.path = /usr/bin
-inbin.files = $$TARGET
-indsk.path = /usr/share/applications/
-indsk.files = de.skycoder42.$${TARGET}.desktop
-
-INSTALLS += inbin indsk
+target.path = $$[QT_INSTALL_BINS]
+INSTALLS += target

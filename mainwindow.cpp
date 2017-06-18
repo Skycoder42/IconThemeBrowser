@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	modeGroup(new QActionGroup(this)),
 	matchFlag(Qt::MatchWildcard),
 	themes(),
+	systemTheme(QIcon::themeName()),
 	iconNames()
 {
 	ui->setupUi(this);
@@ -70,7 +71,12 @@ MainWindow::MainWindow(QWidget *parent) :
 			this, &MainWindow::modeChanged);
 
 	QSettings settings;
-	QIcon::setThemeSearchPaths(settings.value(QStringLiteral("themePaths"), QIcon::themeSearchPaths()).toStringList());
+	auto paths = settings.value(QStringLiteral("themePaths")).toStringList();
+	foreach (auto path, QIcon::themeSearchPaths()) {
+		if(!paths.contains(path))
+			paths.append(path);
+	}
+	QIcon::setThemeSearchPaths(paths);
 	ui->iconSizeSpinBox->setValue(settings.value(QStringLiteral("iconSize"), 16).toInt());
 
 	auto size = settings.beginReadArray(QStringLiteral("iconNames"));
@@ -81,7 +87,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	settings.endArray();
 
 	loadThemeNames();
-	ui->currentThemeComboBox->setCurrentText(settings.value(QStringLiteral("theme"), QIcon::themeName()).toString());
+	ui->currentThemeComboBox->setCurrentText(settings.value(QStringLiteral("theme"), tr("System Theme")).toString());
 	QMetaObject::invokeMethod(this, "on_currentThemeComboBox_activated", Qt::QueuedConnection,
 							  Q_ARG(QString, ui->currentThemeComboBox->currentText()));
 }
@@ -90,7 +96,7 @@ MainWindow::~MainWindow()
 {
 	QSettings settings;
 	settings.setValue(QStringLiteral("themePaths"), QIcon::themeSearchPaths());
-	settings.setValue(QStringLiteral("theme"), QIcon::themeName());
+	settings.setValue(QStringLiteral("theme"), ui->currentThemeComboBox->currentText());
 	settings.setValue(QStringLiteral("iconSize"), ui->iconSizeSpinBox->value());
 
 	auto list = iconNames.toList();
@@ -108,6 +114,7 @@ MainWindow::~MainWindow()
 void MainWindow::updateCount()
 {
 	countLabel->setText(tr("Total Icons: %1").arg(ui->iconTreeView->topLevelItemCount()));
+	modeChanged(modeGroup->checkedAction());
 }
 
 void MainWindow::createTreeItem(QString name, QIcon icon)
@@ -134,9 +141,11 @@ void MainWindow::modeChanged(QAction *action)
 	on_filterLineEdit_textChanged(ui->filterLineEdit->text());
 }
 
-void MainWindow::on_currentThemeComboBox_activated(const QString &text)
+void MainWindow::on_currentThemeComboBox_activated(QString text)
 {
 	ui->iconTreeView->clear();
+	if(text == tr("System Theme"))
+		text = systemTheme;
 	QIcon::setThemeName(text);
 	auto progress = DialogMaster::createProgress(this, tr("Loading icons for theme"));
 	progress->setAttribute(Qt::WA_DeleteOnClose, true);
@@ -268,9 +277,12 @@ void MainWindow::loadThemeNames()
 		}
 	}
 
+	auto names = themes.keys();
+	names.prepend(tr("System Theme"));
+	auto cText = ui->currentThemeComboBox->currentText();
 	ui->currentThemeComboBox->clear();
-	ui->currentThemeComboBox->addItems(themes.keys());
-	ui->currentThemeComboBox->setCurrentText(QIcon::themeName());
+	ui->currentThemeComboBox->addItems(names);
+	ui->currentThemeComboBox->setCurrentText(cText);
 }
 
 bool MainWindow::addIcon(const QString &name)
