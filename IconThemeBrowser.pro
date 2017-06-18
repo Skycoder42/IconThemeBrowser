@@ -12,7 +12,7 @@ DEFINES += "DISPLAY_NAME=\"\\\"Icon Theme Browser\\\"\""
 
 DEFINES += QT_DEPRECATED_WARNINGS
 
-include(./DialogMaster/dialogmaster.pri)
+include(./vendor/vendor.pri)
 
 HEADERS  += mainwindow.h \
 	editpathsdialog.h
