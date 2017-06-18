@@ -3,6 +3,7 @@
 #include "dialogmaster.h"
 
 #include <QIcon>
+#include <QSettings>
 
 PreviewDialog::PreviewDialog(const QString &iconName, const QStringList &themeNames, QWidget *parent) :
 	QDialog(parent),
@@ -12,11 +13,22 @@ PreviewDialog::PreviewDialog(const QString &iconName, const QStringList &themeNa
 {
 	ui->setupUi(this);
 	DialogMaster::masterDialog(this);
+
+	QSettings settings;
+	settings.beginGroup(QStringLiteral("preview"));
+	ui->sizeSpinBox->setValue(settings.value(QStringLiteral("iconSize"), 16).toInt());
+	restoreGeometry(settings.value(QStringLiteral("geom")).toByteArray());
+
 	on_sizeSpinBox_valueChanged(ui->sizeSpinBox->value());
 }
 
 PreviewDialog::~PreviewDialog()
 {
+	QSettings settings;
+	settings.beginGroup(QStringLiteral("preview"));
+	settings.setValue(QStringLiteral("iconSize"), ui->sizeSpinBox->value());
+	settings.setValue(QStringLiteral("geom"), saveGeometry());
+
 	delete ui;
 }
 

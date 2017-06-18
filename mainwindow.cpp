@@ -78,7 +78,6 @@ MainWindow::MainWindow(QWidget *parent) :
 			paths.append(path);
 	}
 	QIcon::setThemeSearchPaths(paths);
-	ui->iconSizeSpinBox->setValue(settings.value(QStringLiteral("iconSize"), 16).toInt());
 
 	auto size = settings.beginReadArray(QStringLiteral("iconNames"));
 	for(auto i = 0; i < size; i++) {
@@ -86,6 +85,12 @@ MainWindow::MainWindow(QWidget *parent) :
 		iconNames.insert(settings.value(QStringLiteral("n")).toString());
 	}
 	settings.endArray();
+
+	settings.beginGroup(QStringLiteral("window"));
+	ui->iconSizeSpinBox->setValue(settings.value(QStringLiteral("iconSize"), 16).toInt());
+	restoreGeometry(settings.value(QStringLiteral("geom")).toByteArray());
+	restoreState(settings.value(QStringLiteral("state")).toByteArray());
+	settings.endGroup();
 
 	loadThemeNames();
 	ui->currentThemeComboBox->setCurrentText(settings.value(QStringLiteral("theme"), tr("System Theme")).toString());
@@ -98,7 +103,6 @@ MainWindow::~MainWindow()
 	QSettings settings;
 	settings.setValue(QStringLiteral("themePaths"), QIcon::themeSearchPaths());
 	settings.setValue(QStringLiteral("theme"), ui->currentThemeComboBox->currentText());
-	settings.setValue(QStringLiteral("iconSize"), ui->iconSizeSpinBox->value());
 
 	auto list = iconNames.toList();
 	auto size = list.size();
@@ -108,6 +112,12 @@ MainWindow::~MainWindow()
 		settings.setValue(QStringLiteral("n"), list[i]);
 	}
 	settings.endArray();
+
+	settings.beginGroup(QStringLiteral("window"));
+	settings.setValue(QStringLiteral("iconSize"), ui->iconSizeSpinBox->value());
+	settings.setValue(QStringLiteral("geom"), saveGeometry());
+	settings.setValue(QStringLiteral("state"), saveState());
+	settings.endGroup();
 
 	delete ui;
 }
