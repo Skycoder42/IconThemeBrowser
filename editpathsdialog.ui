@@ -10,6 +10,9 @@
     <height>300</height>
    </rect>
   </property>
+  <property name="windowTitle">
+   <string>Edit Icon Paths</string>
+  </property>
   <property name="windowIcon">
    <iconset theme="story-editor">
     <normaloff>.</normaloff>.</iconset>
@@ -58,7 +61,8 @@
   </action>
   <action name="action_Add_Path">
    <property name="icon">
-    <iconset theme="list-add"/>
+    <iconset theme="list-add">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Add Path</string>
